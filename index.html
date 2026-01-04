@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deluge Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grain"></div>
+  <canvas id="c" aria-label="Deluge WebGPU simulation"></canvas>
+  <div id="status" class="status-pill glass">Initializing…</div>
+  <div id="no-gpu" class="no-gpu hidden glass">
+    <div class="no-gpu-title">WebGPU unavailable</div>
+    <p class="no-gpu-body">Use Chrome/Edge (latest) on desktop or Android with WebGPU enabled. On iOS/Safari, view the static interface while simulation is unavailable.</p>
+    <button id="no-gpu-dismiss" class="primary">Dismiss</button>
+  </div>
+
+  <header class="glass top-bar">
+    <div class="brand">
+      <div class="drop"></div>
+      <div>
+        <div class="brand-name">Deluge</div>
+        <div class="brand-sub">Command Center: Global Deluge Simulation</div>
+      </div>
+    </div>
+    <nav class="nav-tabs" id="nav-tabs">
+      <button data-pane="landing" class="nav-btn active">Home</button>
+      <button data-pane="map" class="nav-btn">Map View</button>
+      <button data-pane="satellite" class="nav-btn">Satellite</button>
+      <button data-pane="god" class="nav-btn">God Mode</button>
+      <button data-pane="settings" class="nav-btn">Settings</button>
+      <button data-pane="share" class="nav-btn ghost">Share</button>
+      <button data-pane="exit" class="nav-btn ghost">Exit</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="pane" id="pane-landing">
+      <div class="hero glass">
+        <p class="eyebrow">Cinematic Simulation</p>
+        <h1>Deluge</h1>
+        <p class="lede">Hyper-realistic tsunami command interface with God-view and time scrubbing.</p>
+        <div class="cta-row">
+          <button class="primary" id="cta-play">Play Now</button>
+          <button class="secondary" id="cta-overview">Show Command Center</button>
+        </div>
+      </div>
+      <div class="bottom-search glass">
+        <input type="search" placeholder="Search for name..." aria-label="Search">
+        <div class="pager">
+          <button aria-label="Previous">&#8249;</button>
+          <div class="dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <button aria-label="Next">&#8250;</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane hidden" id="pane-map">
+      <div class="hud glass variant-blue">
+        <header>
+          <p class="eyebrow">Present</p>
+          <h2>Time Scrub</h2>
+        </header>
+        <div class="slider-block">
+          <input type="range" id="time-slider" min="0" max="100" step="1" value="62">
+          <div class="slider-labels">
+            <span>Past</span>
+            <span>Present</span>
+            <span>Future</span>
+          </div>
+        </div>
+        <div class="pill-row">
+          <button class="pill" id="btn-backpedal">Backpedal (Reverse)</button>
+          <button class="pill pill-strong" id="btn-advance">Advance (Forward)</button>
+        </div>
+        <div class="stat-cards">
+          <div class="stat glass">
+            <p class="eyebrow">Est. Deaths</p>
+            <p class="stat-value danger" id="stat-deaths">1,245,600</p>
+          </div>
+          <div class="stat glass">
+            <p class="eyebrow">Destruction %</p>
+            <p class="stat-value warm" id="stat-destruction">78.5%</p>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="ghost" id="btn-pause">Pause</button>
+          <button class="ghost" id="btn-reset">Reset</button>
+          <button class="ghost" id="btn-snapshot">Snapshot</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane hidden" id="pane-satellite">
+      <div class="hud glass variant-cyan">
+        <header>
+          <p class="eyebrow">Environmental Controls</p>
+          <h2>Satellite</h2>
+        </header>
+        <div class="control-list" id="controls-satellite">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <section class="pane hidden" id="pane-god">
+      <div class="hud glass variant-amber">
+        <header>
+          <p class="eyebrow">Macro Forecast</p>
+          <h2>God Mode</h2>
+        </header>
+        <div class="stat-grid" id="god-stats">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <section class="pane hidden" id="pane-settings">
+      <div class="hud glass variant-purple">
+        <header>
+          <p class="eyebrow">System</p>
+          <h2>Settings</h2>
+        </header>
+        <div class="control-list" id="controls-settings">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <section class="pane hidden" id="pane-share">
+      <div class="hud glass variant-green">
+        <header>
+          <p class="eyebrow">Share</p>
+          <h2>Mission Snapshot</h2>
+        </header>
+        <p class="lede">Export a snapshot with current timeline, casualty estimates, and destruction coverage.</p>
+        <div class="pill-row">
+          <button class="pill pill-strong">Copy Link</button>
+          <button class="pill">Generate Report</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane hidden" id="pane-exit">
+      <div class="hud glass variant-red">
+        <header>
+          <p class="eyebrow">Exit Protocol</p>
+          <h2>Are you sure?</h2>
+        </header>
+        <p class="lede">Your current scenario state will be saved to the command log.</p>
+        <div class="pill-row">
+          <button class="pill pill-strong">Save & Quit</button>
+          <button class="pill">Cancel</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
