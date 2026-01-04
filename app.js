@@ -96,6 +96,30 @@ function wireTabs() {
       panes.forEach((pane) => pane.classList.toggle('hidden', pane.id !== `pane-${target}`));
     });
   });
+
+  // Hero CTAs
+  const heroPlay = document.getElementById('cta-play');
+  const heroShow = document.getElementById('cta-overview');
+  const goPane = (paneId) => {
+    navTabs.forEach((b) => b.classList.remove('active'));
+    const mapBtn = Array.from(navTabs).find(btn => btn.dataset.pane === paneId);
+    if (mapBtn) mapBtn.classList.add('active');
+    panes.forEach((pane) => pane.classList.add('hidden'));
+    const targetPane = document.getElementById(`pane-${paneId}`);
+    if (targetPane) targetPane.classList.remove('hidden');
+  };
+  if (heroPlay) {
+    heroPlay.addEventListener('click', (e) => {
+      e.preventDefault();
+      goPane('map');
+    });
+  }
+  if (heroShow) {
+    heroShow.addEventListener('click', (e) => {
+      e.preventDefault();
+      goPane('map');
+    });
+  }
 }
 
 function populateControls() {
@@ -168,14 +192,14 @@ function wireCounters() {
   btnBackpedal?.addEventListener('click', () => {
     deaths = clamp(deaths - 12000, 0, 5_000_000);
     destruction = clamp(destruction - 0.6, 0, 100);
-    timeSlider.value = String(Math.max(0, parseFloat(timeSlider.value) - 2));
+    if (timeSlider) timeSlider.value = String(Math.max(0, parseFloat(timeSlider.value) - 2));
     updateLabels();
   });
 
   btnAdvance?.addEventListener('click', () => {
     deaths = clamp(deaths + 18000, 0, 5_000_000);
     destruction = clamp(destruction + 0.8, 0, 100);
-    timeSlider.value = String(Math.min(100, parseFloat(timeSlider.value) + 2));
+    if (timeSlider) timeSlider.value = String(Math.min(100, parseFloat(timeSlider.value) + 2));
     updateLabels();
   });
 
