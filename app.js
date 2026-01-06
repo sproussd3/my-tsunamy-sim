@@ -38,6 +38,7 @@ function switchPane(paneId) {
   const targetBtn = Array.from(navTabs).find((btn) => btn.dataset.pane === paneId);
   if (targetBtn) targetBtn.classList.add('active');
   panes.forEach((pane) => pane.classList.toggle('hidden', pane.id !== `pane-${paneId}`));
+  setStatus(`Showing ${paneId.replace('-', ' ')} view`);
 }
 
 function showNoGpu(message) {
@@ -129,12 +130,14 @@ function wireTabs() {
     heroPlay.addEventListener('click', (e) => {
       e.preventDefault();
       switchPane('map');
+      setStatus('Opening map view');
     });
   }
   if (heroShow) {
     heroShow.addEventListener('click', (e) => {
       e.preventDefault();
       switchPane('map');
+      setStatus('Showing command center');
     });
   }
 }
@@ -225,6 +228,7 @@ function wireCounters() {
     destruction = clamp(destruction - 0.6, 0, 100);
     if (timeSlider) timeSlider.value = String(Math.max(0, parseFloat(timeSlider.value) - 2));
     updateLabels();
+    setStatus('Timeline reversed');
   });
 
   btnAdvance?.addEventListener('click', () => {
@@ -233,6 +237,7 @@ function wireCounters() {
     destruction = clamp(destruction + 0.8, 0, 100);
     if (timeSlider) timeSlider.value = String(Math.min(100, parseFloat(timeSlider.value) + 2));
     updateLabels();
+    setStatus('Timeline advanced');
   });
 
   timeSlider?.addEventListener('input', () => {
@@ -241,6 +246,7 @@ function wireCounters() {
     deaths = clamp(600000 + t * 9000, 0, 5_000_000);
     destruction = clamp(42 + t * 0.45, 0, 100);
     updateLabels();
+    setStatus('Scrubbing timeline');
   });
 
   btnPause?.addEventListener('click', () => {
@@ -258,10 +264,36 @@ function wireCounters() {
 
   btnSnapshot?.addEventListener('click', () => {
     const summary = `Time ${timeSlider ? timeSlider.value : '62'} • Estimated deaths ${deaths.toLocaleString()} • Destruction ${destruction.toFixed(1)}%`;
+    const fallbackCopy = () => {
+      const area = document.createElement('textarea');
+      area.value = summary;
+      area.setAttribute('readonly', '');
+      area.style.position = 'absolute';
+      area.style.left = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      document.body.removeChild(area);
+    };
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(summary).then(() => setStatus('Snapshot copied', true)).catch(() => setStatus('Snapshot generated (copy failed)', false));
+      navigator.clipboard
+        .writeText(summary)
+        .then(() => setStatus('Snapshot copied', true))
+        .catch(() => {
+          try {
+            fallbackCopy();
+            setStatus('Snapshot copied', true);
+          } catch (_) {
+            setStatus('Snapshot generated (copy failed)', false);
+          }
+        });
     } else {
-      setStatus('Snapshot generated', true);
+      try {
+        fallbackCopy();
+        setStatus('Snapshot copied', true);
+      } catch (_) {
+        setStatus('Snapshot generated', true);
+      }
     }
   });
 }
@@ -280,11 +312,13 @@ function wirePager() {
   pagerPrev?.addEventListener('click', () => {
     index = (index - 1 + names.length) % names.length;
     update();
+    setStatus('Moved to previous search target');
   });
 
   pagerNext?.addEventListener('click', () => {
     index = (index + 1) % names.length;
     update();
+    setStatus('Moved to next search target');
   });
 
   pagerDots.forEach((dot) => {
@@ -293,6 +327,7 @@ function wirePager() {
       if (!Number.isNaN(dotIndex)) {
         index = dotIndex;
         update();
+        setStatus('Search target selected');
       }
     });
   });
@@ -301,23 +336,66 @@ function wirePager() {
 }
 
 function wireShare() {
-  const currentSummary = () => `Deluge • Time ${timeSlider ? timeSlider.value : '62'} • Deaths ${statsDeaths ? statsDeaths.textContent : '—'} • Destruction ${statsDestruction ? statsDestruction.textContent : '—'}`;
+  const currentSummary = () =>
+    `Deluge • Time ${timeSlider ? timeSlider.value : '62'} • Deaths ${statsDeaths ? statsDeaths.textContent : '—'} • Destruction ${statsDestruction ? statsDestruction.textContent : '—'}`;
+
+  const fallbackCopy = (text) => {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'absolute';
+    area.style.left = '-9999px';
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
+  };
 
   btnCopyLink?.addEventListener('click', () => {
     const url = window.location.href;
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(url).then(() => setStatus('Link copied', true)).catch(() => setStatus('Copy failed. Share manually.', false));
+      navigator.clipboard
+        .writeText(url)
+        .then(() => setStatus('Link copied', true))
+        .catch(() => {
+          try {
+            fallbackCopy(url);
+            setStatus('Link copied', true);
+          } catch (_) {
+            setStatus('Copy failed. Share manually.', false);
+          }
+        });
     } else {
-      setStatus('Copy this link manually: ' + url, false);
+      try {
+        fallbackCopy(url);
+        setStatus('Link copied', true);
+      } catch (_) {
+        setStatus('Copy this link manually: ' + url, false);
+      }
     }
   });
 
   btnGenerateReport?.addEventListener('click', () => {
     const report = `${currentSummary()} • Snapshot generated at ${new Date().toLocaleString()}`;
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(report).then(() => setStatus('Report copied to clipboard', true)).catch(() => setStatus('Report generated (copy failed)', false));
+      navigator.clipboard
+        .writeText(report)
+        .then(() => setStatus('Report copied to clipboard', true))
+        .catch(() => {
+          try {
+            fallbackCopy(report);
+            setStatus('Report copied to clipboard', true);
+          } catch (_) {
+            setStatus('Report generated (copy failed)', false);
+          }
+        });
     } else {
-      setStatus('Report generated', true);
+      try {
+        fallbackCopy(report);
+        setStatus('Report copied to clipboard', true);
+      } catch (_) {
+        setStatus('Report generated', true);
+      }
     }
   });
 }
